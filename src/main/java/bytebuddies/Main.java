@@ -8,16 +8,16 @@ import java.net.http.HttpResponse;
 
 public class Main {
 
-    private static final double gravitation = 6.67430e-11; //m^3/kg*s^2
-    private static final double earthMass = 5.972e24; //kg
+    private static final double gravitation = 6.67408e-11; //m^3/kg*s^2
+    private static final double earthMass = 5.9722e24; //kg
     private static final double earthRadius = 6371000; //m
     private static final double sLight = 299792458; //m/s
     private static final double UTCSyncConstant = 6.969290134e-10; //UTC sync constant
-    private static final int internalClock = 60; //s
+    private static final int internalClock = 3600; //s
 
     private static double t = 0;
     private static int simRuns = 1440;
-    private static final String FILE_NAME = "coord_time_CSV.csv";
+    private static final String FILE_NAME = "coord_time_CSVLONG.csv";
 
     public static void main(String[] args) {
         SatelliteTracker sT = new SatelliteTracker();
@@ -28,9 +28,10 @@ public class Main {
             BufferedReader altitudeReader = new BufferedReader(new FileReader("h_data.csv"));
             BufferedReader velocityReader = new BufferedReader(new FileReader("v_data.csv"));
 
+            // set i to i += 60 for task d
             for (int i = 0; i < simRuns; i++) {
 
-                //With the API data you can only have like 800 api calls per hour, I need 1440.
+                // With the API data you can only have like 800 api calls per hour, I need 1440.
                 /*
                 HttpResponse<String> response = sT.getTracking();
                 String responseString = response.body();
@@ -46,6 +47,14 @@ public class Main {
 
                 double h = Double.parseDouble(altitudeReader.readLine());
                 double v = Double.parseDouble(velocityReader.readLine());
+
+                // for task d, to skip 59 data points
+                /*
+                for (int j = 0; j < 59; j++) {
+                    altitudeReader.readLine();
+                    velocityReader.readLine();
+                }
+                */
 
                 double discrepancyDelta = (1 - UTCSyncConstant + (gravitation*earthMass)/((h + earthRadius) * sLight*sLight) + (v*v)/(2*sLight*sLight))*internalClock;
                 t += discrepancyDelta;
