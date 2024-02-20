@@ -3,10 +3,7 @@ package bytebuddies;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.http.HttpResponse;
 
 public class Main {
@@ -19,30 +16,38 @@ public class Main {
     private static final int internalClock = 60; //s
 
     private static double t = 0;
-    private static int simRuns = 100;
-    private static final String FILE_NAME = "coord_time.csv";
+    private static int simRuns = 1440;
+    private static final String FILE_NAME = "coord_time_CSV.csv";
 
     public static void main(String[] args) {
         SatelliteTracker sT = new SatelliteTracker();
 
         try {
             FileWriter writer = new FileWriter(FILE_NAME);
-            File file = new File(FILE_NAME);
-            System.out.println(file.getAbsolutePath());
+
+            BufferedReader altitudeReader = new BufferedReader(new FileReader("h_data.csv"));
+            BufferedReader velocityReader = new BufferedReader(new FileReader("v_data.csv"));
 
             for (int i = 0; i < simRuns; i++) {
+
+                //With the API data you can only have like 800 api calls per hour, I need 1440.
+                /*
                 HttpResponse<String> response = sT.getTracking();
                 String responseString = response.body();
 
                 JSONObject jsonObject = new JSONObject(responseString);
                 JSONObject positionObject = jsonObject.getJSONArray("positions").getJSONObject(0);
-                double altitude = positionObject.getDouble("sataltitude")*1000; //m
-                double orbitSpeed = Math.sqrt((gravitation*earthMass)/((earthRadius+altitude))); //m/s
+                double h = positionObject.getDouble("sataltitude")*1000; //m
+                double v = Math.sqrt((gravitation*earthMass)/((earthRadius+h))); //m/s
 
-                System.out.println(altitude);
-                System.out.println(orbitSpeed);
+                System.out.println(h);
+                System.out.println(v);
+                */
 
-                double discrepancyDelta = (1 - UTCSyncConstant + (gravitation*earthMass)/((altitude + earthRadius) * sLight*sLight) + (orbitSpeed*orbitSpeed)/(2*sLight*sLight))*internalClock;
+                double h = Double.parseDouble(altitudeReader.readLine());
+                double v = Double.parseDouble(velocityReader.readLine());
+
+                double discrepancyDelta = (1 - UTCSyncConstant + (gravitation*earthMass)/((h + earthRadius) * sLight*sLight) + (v*v)/(2*sLight*sLight))*internalClock;
                 t += discrepancyDelta;
                 writer.write(String.format("%.10f\n", t));
             }
